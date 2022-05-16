@@ -5,9 +5,10 @@
   "license": "",
   "sideEffects": false,
   "scripts": {
-    "build": "npm run build:css && remix build",
+    "setup": "remix setup",
+    "build": "yarn run build:css && remix build",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
-    "dev": "concurrently \"npm run dev:css\" \"remix dev\"",
+    "dev": "concurrently \"yarn run dev:css\" \"remix dev\"",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css"
   },
   "dependencies": {
@@ -17,8 +18,10 @@
     "@remix-run/vercel": "^1.4.3",
     "@vercel/node": "^1.14.0",
     "antd": "^4.20.3",
+    "navigate": "^0.3.6",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "remix": "^1.4.3"
   },
   "devDependencies": {
     "@remix-run/dev": "^1.4.3",

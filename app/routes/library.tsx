@@ -19,7 +19,7 @@ export default function Index(){
         <div style={{height:'100vh',width:'100%',display:"flex",flexDirection:'column',background:'#F4F4F4'}}>
             <div style={{top:'0%', width: '100%',height:'7%',background:'#3f9bd590',padding:10,display:"flex"}}>
                 <p style={{height:'100%',display:'flex',alignItems:"center",fontWeight:1000,fontSize:'15px',cursor:"pointer"}} onClick={()=>navigate('../')}>首頁</p>
-                <h1 style={{marginLeft:"15px",color:"white"}}>浙江大學圖書館管理系統</h1>
+                <p style={{height:'100%',display:'flex',alignItems:"center",marginLeft:"15px",color:"white",fontSize:'25px'}}>浙江大學圖書館管理系統</p>
             </div>
             <div style={{display:"flex",width:'100%',height:'88%'}}>
                 <div style={{height:'100%',width:80,marginTop:'5px'}}>

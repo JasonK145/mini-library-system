@@ -8,18 +8,20 @@ export default function index(){
         <div className="border-2 p-5 bg-white">
           <p className="text-xl text-center font-semibold">找回密碼</p>
           <div className="flex flex-col items-center mt-12">
-            <Input
-              className="w-4/5 my-4"
-              size="large"
-              placeholder="Account"
-              prefix={<UserOutlined />}/>
-            <Input
-              type="password"
-              className="w-4/5 my-4"
-              size="large"
-              placeholder="Password"
-              prefix={<KeyOutlined />}/>
-            <Button className="my-4">找回</Button>
+            <div className="w-4/5 text-center">
+                <Input
+                  className="w-4/5 my-4 "
+                  size="large"
+                  placeholder="Account"
+                  prefix={<UserOutlined />}/>
+                <Input
+                  type="password"
+                  className="w-4/5 my-4 "
+                  size="large"
+                  placeholder="Password"
+                  prefix={<KeyOutlined />}/>
+                <Button onClick={()=>{}} className="mt-10">登入</Button>
+            </div>
           </div>
         </div>
         <div className="my-5 border-2 p-5 bg-white">

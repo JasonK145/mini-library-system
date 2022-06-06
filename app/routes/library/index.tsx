@@ -1,127 +1,227 @@
-import { Button, Cascader, Input, Table } from 'antd';
-import React from 'react';
+import type { InputRef } from 'antd';
+import { Button, Form, Input, Popconfirm, Table } from 'antd';
+import type { FormInstance } from 'antd/lib/form';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
-const { Search } = Input;
-const onSearch = (value: any) => console.log(value);
-export default function Index(){
-    return (
-        <>
-            <div className="h-full w-full flex flex-col">
-                <div className="h-[80px] w-full flex items-center px-10 bg-[#f4f4f4]">
-                    <div className="w-1/12">
-                        <Button type="primary" size='large'>新增</Button>
-                    </div>
-                    <div className="w-1/12 ml-3">
-                        查詢條件：
-                    </div>
-                    <div className="w-1/4 mx-2">
-                        <Cascader options={options} onChange={onChange} placeholder="Please select" />
-                    </div>
+const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
-                    <div className="w-1/4">
-                        <Search size="large" placeholder="input search text" onSearch={onSearch} enterButton />
-                    </div>
-                </div>
-                <div className="my-5 h-40">
-                    <Table columns = {columns} dataSource={data} bordered />;
-                </div>
-            </div>
-        </>
-    );
+interface Item {
+  key: string;
+  name: string;
+  age: string;
+  address: string;
 }
 
-
-
-const options = [
-  {
-    value: '計算機',
-    label: '計算機',
-  },
-  {
-    value: '英文',
-    label: '英文',
-  },
-];
-
-function onChange(value: any) {
-  console.log(value);
+interface EditableRowProps {
+  index: number;
 }
 
-
-
-// In the fifth row, other columns are merged into first column
-// by setting it's colSpan to be 0
-const sharedOnCell = (_: any, index: number) => {
-  return {};
+const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
+  const [form] = Form.useForm();
+  return (
+    <Form form={form} component={false}>
+      <EditableContext.Provider value={form}>
+        <tr {...props} />
+      </EditableContext.Provider>
+    </Form>
+  );
 };
 
-const columns = [
-  {
-    title: '圖書編號',
-    dataIndex: 'id',
-    render: (text: boolean | React.ReactChild | React.ReactFragment | React.ReactPortal | null | undefined) => <a>{text}</a>,
-    onCell: (_: any, index: number) => ({
-      colSpan: 1,
-    }),
-  },
-  {
-    title: '圖書名稱',
-    dataIndex: 'name',
-    onCell: sharedOnCell,
-  },
-  {
-    title: '出版社',
-    dataIndex: 'sell',
-    onCell: sharedOnCell,
-  },
-  {
-    title: '在庫數量',
-    dataIndex: 'number',
-    onCell: sharedOnCell,
-  },
-  {
-    title: '圖書價格',
-    dataIndex: 'price',
-    onCell: sharedOnCell,
-  },
-  {
-    title: '所屬類型',
-    dataIndex: 'type',
-    onCell: sharedOnCell,
-  },
-  {
-    title: '操作',
-    dataIndex: 'action',
-    onCell: sharedOnCell,
-  },
-];
-const data = [
-  {
-    key: '1',
-    id: '00001',
-    name: "數據庫系統",
-    sell: '浙江大學',
-    number: 20,
-    price: 100,
-    type:'計算機',
-    action:<div className="text-center">
-        <Button className="mx-2">修改</Button>
-        <Button className="mx-2">刪除</Button>
-        </div>,
-  },
-  {
-    key: '2',
-    id: '00002',
-    name: '操作系統',
-    sell: '浙江大學',
-    number: 11,
-    price: 80,
-    type:'計算機',
-    action:<div className="text-center">
-        <Button className="mx-2">修改</Button>
-        <Button className="mx-2">刪除</Button>
-        </div>,
-  },
-];
+interface EditableCellProps {
+  title: React.ReactNode;
+  editable: boolean;
+  children: React.ReactNode;
+  dataIndex: keyof Item;
+  record: Item;
+  handleSave: (record: Item) => void;
+}
+
+const EditableCell: React.FC<EditableCellProps> = ({
+  title,
+  editable,
+  children,
+  dataIndex,
+  record,
+  handleSave,
+  ...restProps
+}) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current!.focus();
+    }
+  }, [editing]);
+
+  const toggleEdit = () => {
+    setEditing(!editing);
+    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+  };
+
+  const save = async () => {
+    try {
+      const values = await form.validateFields();
+
+      toggleEdit();
+      handleSave({ ...record, ...values });
+    } catch (errInfo) {
+      console.log('Save failed:', errInfo);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <Form.Item
+        style={{ margin: 0 }}
+        name={dataIndex}
+        rules={[
+          {
+            required: true,
+            message: `${title} is required.`,
+          },
+        ]}
+      >
+        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      </Form.Item>
+    ) : (
+      <div className="editable-cell-value-wrap" style={{ paddingRight: 24 }} onClick={toggleEdit}>
+        {children}
+      </div>
+    );
+  }
+
+  return <td {...restProps}>{childNode}</td>;
+};
+
+type EditableTableProps = Parameters<typeof Table>[0];
+
+interface DataType {
+  key: React.Key;
+  name: string;
+  age: string;
+  address: string;
+}
+
+type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
+
+const App: React.FC = () => {
+  const [dataSource, setDataSource] = useState<DataType[]>([
+    {
+      key: '0',
+      name: 'Edward King 0',
+      age: '32',
+      address: 'London, Park Lane no. 0',
+    },
+    {
+      key: '1',
+      name: 'Edward King 1',
+      age: '32',
+      address: 'London, Park Lane no. 1',
+    },
+  ]);
+
+  const [count, setCount] = useState(2);
+
+  const handleDelete = (key: React.Key) => {
+    const newData = dataSource.filter(item => item.key !== key);
+    setDataSource(newData);
+  };
+
+  const defaultColumns: any[] = [
+    {
+      title: 'name',
+      dataIndex: 'name',
+      width: '30%',
+      editable: true,
+    },
+    {
+      title: 'age',
+      dataIndex: 'age',
+    },
+    {
+      title: 'address',
+      dataIndex: 'address',
+    },
+    {
+      title: 'operation',
+      dataIndex: 'operation',
+      render: (_:any, record: { key: React.Key }) =>
+        dataSource.length >= 1 ? (
+          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+            <a>Delete</a>
+          </Popconfirm>
+        ) : null,
+    },
+  ];
+
+  const handleAdd = () => {
+    const newData: DataType = {
+      key: count,
+      name: `Edward King ${count}`,
+      age: '32',
+      address: `London, Park Lane no. ${count}`,
+    };
+    setDataSource([...dataSource, newData]);
+    setCount(count + 1);
+  };
+
+  const handleSave = (row: DataType) => {
+    const newData = [...dataSource];
+    const index = newData.findIndex(item => row.key === item.key);
+    const item = newData[index];
+    newData.splice(index, 1, {
+      ...item,
+      ...row,
+    });
+    setDataSource(newData);
+  };
+
+  const components = {
+    body: {
+      row: EditableRow,
+      cell: EditableCell,
+    },
+  };
+
+  const columns = defaultColumns.map(col => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: DataType) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
+        handleSave,
+      }),
+    };
+  });
+
+  return (
+    <div>
+      <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
+        Add a row
+      </Button>
+      <Table
+        components={components}
+        rowClassName={() => 'editable-row'}
+        bordered
+        dataSource={dataSource}
+        columns={columns as ColumnTypes}
+      />
+    </div>
+  );
+};
+
+export default App;
 
 
+
+//void Interface::serialOutput
+//(std::vector<Tuple> &tuples, std::vector<string> &attr_names/

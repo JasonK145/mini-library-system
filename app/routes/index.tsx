@@ -1,6 +1,6 @@
 import { KeyOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Input } from 'antd';
-import { useNavigate } from 'remix';
+import { useNavigate } from 'react-router-dom';
 
 export default function Index(){
   const navigate = useNavigate();

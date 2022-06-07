@@ -1,15 +1,17 @@
 import type { InputRef } from 'antd';
 import { Button, Form, Input, Popconfirm, Table } from 'antd';
 import type { FormInstance } from 'antd/lib/form';
+import axios from 'axios';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface Item {
-  key: string;
+  id: string;
   name: string;
-  age: string;
-  address: string;
+  type: string;
+  author: string;
+  seller: string;
 }
 
 interface EditableRowProps {
@@ -100,70 +102,99 @@ const EditableCell: React.FC<EditableCellProps> = ({
 type EditableTableProps = Parameters<typeof Table>[0];
 
 interface DataType {
-  key: React.Key;
+  id: React.Key;
   name: string;
-  age: string;
-  address: string;
+  type: string;
+  author: string;
+  seller: string;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 const App: React.FC = () => {
+  
   const [dataSource, setDataSource] = useState<DataType[]>([
-    {
-      key: '0',
-      name: 'Edward King 0',
-      age: '32',
-      address: 'London, Park Lane no. 0',
-    },
-    {
-      key: '1',
-      name: 'Edward King 1',
-      age: '32',
-      address: 'London, Park Lane no. 1',
-    },
   ]);
+
+  useEffect(() => {axios.post("http://localhost:7000/book").then((res)=>{
+    setDataSource(res.data);});
+  },[])
 
   const [count, setCount] = useState(2);
 
-  const handleDelete = (key: React.Key) => {
-    const newData = dataSource.filter(item => item.key !== key);
+  const handleDelete = (id: React.Key) => {
+    const newData = dataSource.filter(item => item.id !== id);
     setDataSource(newData);
   };
 
   const defaultColumns: any[] = [
     {
-      title: 'name',
-      dataIndex: 'name',
-      width: '30%',
+      title: 'ISBN',
+      dataIndex: 'id',
+      width: '10%',
       editable: true,
     },
     {
-      title: 'age',
-      dataIndex: 'age',
+      title: 'Name',
+      dataIndex: 'name',
     },
     {
-      title: 'address',
-      dataIndex: 'address',
+      title: 'Type',
+      dataIndex: 'type',
     },
     {
-      title: 'operation',
+      title: 'Author',
+      dataIndex: 'author',
+    },
+    {
+      title: 'Seller',
+      dataIndex: 'seller',
+    },
+    {
+      title: 'delete',
       dataIndex: 'operation',
-      render: (_:any, record: { key: React.Key }) =>
+      render: (_:any, record: { id: React.Key }) =>
         dataSource.length >= 1 ? (
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
+          <Popconfirm title="Sure to delete?" onConfirm={() => {
+            handleDelete(record.id);  
+            axios
+              .post("http://localhost:7000/delBook", {
+                id: record.id
+              })
+              .then((res) => {
+                });
+            }}>
             <a>Delete</a>
           </Popconfirm>
         ) : null,
     },
+    {
+      title: 'correct',
+      dataIndex:'correct',
+      render: (_:any, record: { id:React.Key }) =>
+        dataSource.length >= 1 ? (
+          <Popconfirm title="Sure to delete?" onConfirm={() => {  
+            axios
+              .post("http://localhost:7000/CorBook", {
+                id: record.id
+              })
+              .then((res) => {
+                });
+            }}>
+            <a>Correct</a>
+          </Popconfirm>
+        ) : null,
+      }
   ];
 
   const handleAdd = () => {
     const newData: DataType = {
-      key: count,
-      name: `Edward King ${count}`,
-      age: '32',
-      address: `London, Park Lane no. ${count}`,
+      id: count,
+      name: `CS ${count}`,
+      type: 'CS',
+      author: `Nobody ${count}`,
+      seller: '浙江大學'
+
     };
     setDataSource([...dataSource, newData]);
     setCount(count + 1);
@@ -171,7 +202,7 @@ const App: React.FC = () => {
 
   const handleSave = (row: DataType) => {
     const newData = [...dataSource];
-    const index = newData.findIndex(item => row.key === item.key);
+    const index = newData.findIndex(item => row.id === item.id);
     const item = newData[index];
     newData.splice(index, 1, {
       ...item,
@@ -205,7 +236,19 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
+      <Button onClick={()=>{
+        handleAdd();
+          axios.post("http://localhost:7000/addBook", {
+            id: count,
+            name: `CS ${count}`,
+            type: 'CS',
+            author: `Nobody ${count}`,
+            seller: '浙江大學'
+          })
+          .then((res) => {
+              
+            });
+        }} type="primary" style={{ marginBottom: 16 }}>
         Add a row
       </Button>
       <Table

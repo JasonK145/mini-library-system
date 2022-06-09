@@ -61,11 +61,108 @@ app.post("/delBook",function(req, res){
     });
 });
 app.post("/addBook",function(req, res){
-    const {id,name,type,author,seller} = req.body;
-    console.log(name);
-    db.query(`INSERT INTO Book(id, name, type, author, seller) VALUES('${id}', '${name}', '${type}', '${author}', '${seller}')`,
+    const {id,name,type,author,seller,state} = req.body;
+    db.query(`INSERT INTO Book(id, name, type, author, seller, state) VALUES('${id}', '${name}', '${type}', '${author}', '${seller}','${state}')`,
     function(err,rows,fields){
         console.log(rows);
        return res.send('true');
     });
 });
+app.post("/CorBook",function(req, res){
+    const {id,name,type,author,seller} = req.body;
+    console.log({name}.name+"a");
+    db.query(`UPDATE Book SET id='${id}', name='${name}', type='${type}', author='${author}', seller='${seller}' WHERE id='${id}'`,
+    function(err, rows, fields){
+        return res.send(rows);
+    });
+});
+app.post("/upDateState",function(req, res){
+    const {id,state} = req.body;
+    db.query(`UPDATE Book SET state='${state}' WHERE id=${id}`,
+    function(err, rows, fields){
+        return res.send(rows);
+    });
+});
+app.post("/borrowed_book",function(req, res){
+    db.query(
+        `SELECT * FROM Book WHERE state='借出' `,
+        function(err,rows,fields){
+           return res.send(rows); 
+        }
+    );
+})
+app.post("/have_not_borrow_book",function(req, res){
+    db.query(
+        `SELECT * FROM Book WHERE state='未借出' `,
+        function(err,rows,fields){
+           return res.send(rows); 
+        }
+    );
+})
+app.post("/search",function(req, res){
+    const {select} = req.body;
+    console.log(select);
+    db.query(
+        `SELECT * FROM Book WHERE type='${select}'`,
+        function(err,rows,fields){
+            console.log(rows);
+            return res.send(rows);
+        }
+    )
+})
+app.post("/borrow_search",function(req, res){
+    const {select} = req.body;
+    console.log("borrow_search");
+    db.query(
+        `SELECT * FROM Book WHERE state='未借出' AND type='${select}'`,
+        function(err,rows,fields){
+            console.log(rows);
+            return res.send(rows);
+        }
+    )
+})
+app.post("/return_search",function(req, res){
+    const {select} = req.body;
+    console.log("return_search");
+    db.query(
+        `SELECT * FROM Book WHERE state='借出' AND type='${select}'`,
+        function(err,rows,fields){
+            console.log(rows);
+            return res.send(rows);
+        }
+    )
+})
+app.post("/search_booktype",function(req, res){
+    const {select} = req.body;
+    console.log(select);
+    db.query(
+        `SELECT * FROM Book WHERE type='${select}' OR id='${select}' OR name='${select}' OR author='${select}' OR seller='${select}'`,
+        function(err,rows,fields){
+            console.log(rows);
+            return res.send(rows);
+        }
+    )
+})
+
+/*
+db.query('SELECT * FROM Borrowed_Book',function(err,rows){
+    if(err) throw err;
+    console.log('Response: ', rows);
+});
+
+app.post("/InsertBorrowedBook",function(req, res){
+    const {id,name,type,author,seller} = req.body;
+    console.log(id);
+    db.query(`INSERT INTO Borrowed_Book(id, name, type, author, seller) VALUES('${id}', '${name}', '${type}', '${author}', '${seller}')`,
+    function(err,rows,fields){
+       return res.send('true');
+    });
+});
+app.post("/returnBook",function(req, res){
+    const {id} = req.body;
+    db.query(`DELETE FROM Borrowed_Book WHERE id='${id}'`,
+    function(err, rows, fields){
+        return res.send(rows);
+    });
+});
+*/

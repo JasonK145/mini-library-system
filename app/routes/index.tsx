@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+
 export default function Index(){
   const navigate = useNavigate();
   const [id, setUsername] = useState("");
@@ -18,6 +19,7 @@ export default function Index(){
         .then((res) => {
           if(res.data == 1){
             alert('登入成功！');
+            
             navigate('./library');
           }
           else
@@ -30,6 +32,7 @@ export default function Index(){
       alert("請輸入密碼!");
     }
   };
+
   return (
     <div className="h-screen w-full flex p-28 bg-[#f4f4f4]">
       <div className="w-1/2">

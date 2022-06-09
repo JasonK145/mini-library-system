@@ -1,5 +1,5 @@
 import type { InputRef } from 'antd';
-import { Button, Form, Input, Popconfirm, Table } from 'antd';
+import { Button, Cascader, Form, Input, Popconfirm, Table } from 'antd';
 import type { FormInstance } from 'antd/lib/form';
 import axios from 'axios';
 import React, { useContext, useEffect, useRef, useState } from 'react';
@@ -12,6 +12,7 @@ interface Item {
   type: string;
   author: string;
   seller: string;
+  state: string;
 }
 
 interface EditableRowProps {
@@ -107,6 +108,7 @@ interface DataType {
   type: string;
   author: string;
   seller: string;
+  state: string;
 }
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
@@ -115,7 +117,7 @@ const App: React.FC = () => {
   
   const [dataSource, setDataSource] = useState<DataType[]>([
   ]);
-
+  
   useEffect(() => {axios.post("http://localhost:7000/book").then((res)=>{
     setDataSource(res.data);});
   },[])
@@ -168,23 +170,6 @@ const App: React.FC = () => {
           </Popconfirm>
         ) : null,
     },
-    {
-      title: 'correct',
-      dataIndex:'correct',
-      render: (_:any, record: { id:React.Key }) =>
-        dataSource.length >= 1 ? (
-          <Popconfirm title="Sure to delete?" onConfirm={() => {  
-            axios
-              .post("http://localhost:7000/CorBook", {
-                id: record.id
-              })
-              .then((res) => {
-                });
-            }}>
-            <a>Correct</a>
-          </Popconfirm>
-        ) : null,
-      }
   ];
 
   const handleAdd = () => {
@@ -193,8 +178,8 @@ const App: React.FC = () => {
       name: `CS ${count}`,
       type: 'CS',
       author: `Nobody ${count}`,
-      seller: '浙江大學'
-
+      seller: '浙江大學',
+      state:"未借出",
     };
     setDataSource([...dataSource, newData]);
     setCount(count + 1);
@@ -234,35 +219,102 @@ const App: React.FC = () => {
     };
   });
 
+  function onChange(value: any) {
+    axios.post("http://localhost:7000/search", {
+      select:value,
+      }) 
+    .then((res) => { 
+      setDataSource(res.data);
+    });
+    console.log(value);
+  }
+
+
+  const { Search } = Input;
+  const onSearch = (value: any) => {
+    axios.post("http://localhost:7000/search_booktype", {
+      select:value,
+      }) 
+    .then((res) => { 
+      setDataSource(res.data);
+    });
+  }
+
   return (
+    
     <div>
-      <Button onClick={()=>{
-        handleAdd();
-          axios.post("http://localhost:7000/addBook", {
-            id: count,
-            name: `CS ${count}`,
-            type: 'CS',
-            author: `Nobody ${count}`,
-            seller: '浙江大學'
-          })
-          .then((res) => {
-              
-            });
-        }} type="primary" style={{ marginBottom: 16 }}>
-        Add a row
-      </Button>
-      <Table
-        components={components}
-        rowClassName={() => 'editable-row'}
-        bordered
-        dataSource={dataSource}
-        columns={columns as ColumnTypes}
-      />
+      <div className="h-[80px] w-full flex items-center px-10 bg-[#f4f4f4]">
+        <div className="w-1/12">
+            <Button type="primary" size='large'>新增</Button>
+        </div>
+        <div className="w-1/12 ml-3">
+            查詢條件：
+        </div>
+        <div className="w-1/4 mx-2">
+            <Cascader options={options} onChange={onChange
+              } placeholder="Please select" />
+        </div>
+
+        <div className="w-1/4">
+            <Search size="large" placeholder="input search text" onSearch={onSearch} enterButton />
+        </div>
+      </div>
+      <div className="my-5 h-40">
+        <div>
+          <Button onClick={()=>{
+            handleAdd();
+              axios.post("http://localhost:7000/addBook", {
+                id: count,
+                name: `CS ${count}`,
+                type: 'CS',
+                author: `Nobody ${count}`,
+                seller: '浙江大學',
+                state: '未借出',
+              })
+              .then((res) => {
+                  
+                });
+            }} type="primary" style={{ marginBottom: 16 }}>
+            Add a row
+          </Button>
+          <Table
+            components={components}
+            rowClassName={() => 'editable-row'}
+            bordered
+            dataSource={dataSource}
+            columns={columns as ColumnTypes}
+          />
+        </div>
+      </div>
+    
     </div>
   );
 };
 
 export default App;
+
+const options = [
+  {
+    value: 'CS',
+    label: 'CS',
+  },
+  {
+    value: 'Eng',
+    label: 'Eng',
+  },
+  {
+    value: 'Chinese',
+    label: 'Chinese',
+  },
+  {
+    value: 'History',
+    label: 'History',
+  },
+  {
+    value: 'IOS',
+    label: 'IOS',  
+  }
+];
 
 
 

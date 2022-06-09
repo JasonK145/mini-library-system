@@ -24,9 +24,8 @@ function getItem(
 
 const items: MenuItem[] = [
   getItem('圖書信息管理','',<ContainerOutlined/>),
-  getItem('圖書類別管理', 'bookType', <PieChartOutlined />),
-  getItem('讀者信息管理', 'reader', <ContainerOutlined />),
-  getItem('管理員信息管理', 'manager', <ContainerOutlined />),
+  getItem('修改圖書', 'bookType', <PieChartOutlined />),
+  getItem('還書管理', 'manager', <ContainerOutlined />),
   getItem('借閱管理', 'borrower', <ContainerOutlined />),
 ];
 
